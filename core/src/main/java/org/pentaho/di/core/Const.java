@@ -1176,6 +1176,9 @@ public class Const {
   // See PDI-PDI-18739 for details
   public static final String KETTLE_COMPATIBILITY_TEXT_FILE_INPUT_USE_LENIENT_ENCLOSURE_HANDLING = "KETTLE_COMPATIBILITY_TEXT_FILE_INPUT_USE_LENIENT_ENCLOSURE_HANDLING";
 
+  // See PDI-18810 for details
+  public static final String KETTLE_COMPATIBILITY_MDI_INJECTED_FILE_ALWAYS_IN_FILESYSTEM = "KETTLE_COMPATIBILITY_MDI_INJECTED_FILE_ALWAYS_IN_FILESYSTEM";
+
   /**
    * The XML file that contains the list of native import rules
    */
@@ -1240,6 +1243,16 @@ public class Const {
    * {@linkplain org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder#USER_DIR_IS_ROOT}
    */
   public static final String VFS_USER_DIR_IS_ROOT = "vfs.sftp.userDirIsRoot";
+
+  /**
+   * A variable to configure environment variables to ignore when initializing shell step
+   * */
+  public static final String SHELL_STEP_ENVIRONMENT_VARIABLES_TO_IGNORE = "SHELL_STEP_ENVIRONMENT_VARIABLES_TO_IGNORE";
+
+  /**
+   * The default value for the variable to configure environment variables to ignore when initializing shell step
+   * */
+  public static final String SHELL_STEP_ENVIRONMENT_VARIABLES_TO_IGNORE_DEFAULT = "";
 
   /**
    * <p>A variable to configure the minimum allowed ratio between de- and inflated bytes to detect a zipbomb.</p>
@@ -1370,26 +1383,6 @@ public class Const {
       return Paths.get( karafDir ).getParent().getParent().toString() + File.separator + "drivers";
     }
     return driversLocation;
-  }
-
-  /**
-   * <p>This environment variable is used to define the minimum PUC user password length. The default password length is 0.</p>
-   */
-  private static final String PUC_USER_PASSWORD_LENGTH = "PUC_USER_PASSWORD_LENGTH";
-  private static final String DEFAULT_PASSWORD_LENGTH = "0";
-  public static int getPucUserPasswordLength() {
-    String passwordLengthStr = System.getProperty( PUC_USER_PASSWORD_LENGTH, DEFAULT_PASSWORD_LENGTH );
-    return Integer.parseInt( passwordLengthStr );
-  }
-
-  /**
-   * <p>This environment variable is used to require the use of at least one special character in the PUC user password. This is set to false by default.</p>
-   */
-  private static final String PUC_USER_PASSWORD_REQUIRE_SPECIAL_CHARACTER = "PUC_USER_PASSWORD_REQUIRE_SPECIAL_CHARACTER";
-  private static final String DEFAULT_SPEC_CHARACTER_USE = "false";
-  public static boolean isPassSpecialCharRequired() {
-    String specialCharReqStr = System.getProperty( PUC_USER_PASSWORD_REQUIRE_SPECIAL_CHARACTER, DEFAULT_SPEC_CHARACTER_USE );
-    return Boolean.valueOf( specialCharReqStr );
   }
 
   /**
@@ -2865,7 +2858,8 @@ public class Const {
             // and reset the "concatSplit" buffer. Otherwise continue
             addSplit = oddNumberOfEnclosures;
           }
-          if ( addSplit ) {
+          // Check if enclosure is also using inside data
+          if ( addSplit || numEnclosures > 2 ) {
             String splitResult = concatSplit.toString();
             //remove enclosure from resulting split
             if ( removeEnclosure ) {
